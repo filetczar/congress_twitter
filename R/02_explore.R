@@ -2,11 +2,7 @@
 # Explore & Viz Data   
 ######################
 
-install.packages('igraph')
-install.packages('statnet')
-install.packages('ggiraph')
-install.packages('ggnetwork')
-install.packages('ggrepel')
+
 library(ggrepel)
 library(ggiraph)
 library(ggnetwork)
@@ -113,6 +109,7 @@ ggplot(senate_network, aes(x=x, y=y, xend=xend, yend=yend))+
 ######################
 #  TRY AGAIN FOR SENATE
 ######################
+# GOOD 
 edges_df %>% 
   filter(source =='Benjamin Sasse')
 
@@ -121,20 +118,21 @@ count <- network.edgecount(senate_graph)
 set.edge.attribute(senate_graph, "type", senate_df[,'type'])
 set.edge.attribute(senate_graph, 'line', senate_df[,'line'])
 set.edge.attribute(senate_graph, 'party', senate_df[,'party'])
-
+View(senate_gg)
 senate_gg <- ggnetwork(senate_graph,layout = "fruchtermanreingold", cell.jitter = 3)
 senate_gg$betweenness <- round(betweenness(senate_graph)[senate_gg$vertex.names],2)
-#View(senate_gg)
-ggplot(senate_gg, aes(x = x, y = y, xend=xend, yend=yend, color = party))  +
+
+# attempt interactive
+# geom_point_interactive vs. geom_text_interactive
+# plot sizing 
+# minimal legend (maybe just arrows and pointing to examples)
+plot <- ggplot(senate_gg, aes(x = x, y = y, xend=xend, yend=yend, color = party, tooltip=vertex.names,data_id = vertex.names)) +
   geom_edges(aes(linetype = line), curvature = .4, alpha=.5, size=.1) +
   geom_nodes(alpha= .6, aes(fill =party, size =betweenness), show.legend = FALSE) +
-  geom_label_repel(aes(x=x, y=y,label=vertex.names), size =2) +
-  #geom_nodetext(aes(label = vertex.names), fontface = "bold", show.legend = FALSE) +
   scale_color_manual(values=c('Democrat'='dodgerblue', 'Republican'='red', 'Independent'='forestgreen', 'NA'='grey'))+
   theme_blank() +
-  scale_linetype_manual(values = c('solid'='solid', 'dotted'='dotted')) 
-
+  scale_linetype_manual(values = c('solid'='solid', 'dotted'='dotted')) +
+  geom_point_interactive(size =2)+
+  geom_nodetext(aes(label=vertex.names), fontface='bold')
 ggiraph(code={print(plot)})
 
-?geom_edges()
-geom_labe
