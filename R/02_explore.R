@@ -119,20 +119,45 @@ set.edge.attribute(senate_graph, "type", senate_df[,'type'])
 set.edge.attribute(senate_graph, 'line', senate_df[,'line'])
 set.edge.attribute(senate_graph, 'party', senate_df[,'party'])
 View(senate_gg)
-senate_gg <- ggnetwork(senate_graph,layout = "fruchtermanreingold", cell.jitter = 3)
+senate_gg <- ggnetwork(senate_graph,layout = "fruchtermanreingold", cell.jitter = .5)
 senate_gg$betweenness <- round(betweenness(senate_graph)[senate_gg$vertex.names],2)
 
+
+senate_gg <- readRDS('./data/senate_gg.rds')
 # attempt interactive
 # geom_point_interactive vs. geom_text_interactive
 # plot sizing 
 # minimal legend (maybe just arrows and pointing to examples)
-plot <- ggplot(senate_gg, aes(x = x, y = y, xend=xend, yend=yend, color = party, tooltip=vertex.names,data_id = vertex.names)) +
+
+plot <- ggplot(senate_gg, aes(x = x, y = y, xend=xend, yend=yend, color = party)) +
   geom_edges(aes(linetype = line), curvature = .4, alpha=.5, size=.1) +
   geom_nodes(alpha= .6, aes(fill =party, size =betweenness), show.legend = FALSE) +
   scale_color_manual(values=c('Democrat'='dodgerblue', 'Republican'='red', 'Independent'='forestgreen', 'NA'='grey'))+
   theme_blank() +
   scale_linetype_manual(values = c('solid'='solid', 'dotted'='dotted')) +
-  geom_point_interactive(size =2)+
-  geom_nodetext(aes(label=vertex.names), fontface='bold')
+  geom_nodetext(aes(label=vertex.names), fontface='bold', size =3) +
+  geom_text_repel(aes(label=vertex.names))
+  
+
+
 ggiraph(code={print(plot)})
+
+# senate's centraility 
+centr_degree(senate_graph_obj, mode='total')
+# centralization .578
+
+# get closeness 
+senate_closeness <- igraph::closeness(senate_graph_obj,mode='total') %>% 
+                    as.data.frame() %>% 
+                    tibble::rownames_to_column() 
+names(senate_closeness) <- c('Senator', 'Closeness')
+
+senate_closeness %>% 
+  arrange(desc(Closeness)) %>%
+  head()
+# closeness could be interpreted as bipartisanship 
+# betweenness could be intepreted as connections 
+View(senate_gg)
+senate_btw <- senate_gg %>% 
+  distinct(vertex.names, betweenness)
 
