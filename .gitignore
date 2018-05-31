@@ -1,2 +1,5 @@
 *.txt
 *.rds
+*.RDS
+*.html
+*.Rmd
